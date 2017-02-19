@@ -56,15 +56,36 @@ bool checkParam(char * pcDecimal[])
  * Prevede cislo z decimalky do binarky.
  */
 char * convertDecToBin(long decimal) {
-    // deklaruji si staticky alokovane integerove pole o 63 prvcich.
-    // 63 prvku, protoze round(log2(9223372036854775807)) je 63.
+    /*
+     deklaruji si staticky alokovane integerove pole o 63 prvcich.
+     63 protoze long muze byt nejvice 64 bitu, ale ve skutecnosti je
+     to jen 63. (velikost je dana podle toho kolikabitovy je system)
+    */
     static char binary[BIN_NUM_LENGTH] = {0};
+    /*
+     nastavi vsechny prvky vyslednyho pole na 2, aby se zjistilo,
+     kde doopravdy cislo konci. V binarni soustave neni cislo 2,
+     takze nedojde k chybam.
+    */
     memset(binary, 2, BIN_NUM_LENGTH * sizeof(binary[0]));
 
-    char pTempBinary[63] = {0};
+    /*
+     pro pripad, ze uzivatel zada 0 nebo -0, nastavim prvni prvek na 0
+     pokud to nula nebude, tak si ji sam prepise na jednicku.
+    */
+    binary[0] = 0;
 
-    // promenna uchovavajici aktualni index pole "binary".
+    /*
+     docasne pole, ktere se pak bude prepisovat do pole "binary"
+     ve spravnem poradi.
+    */
+    char tempBinary[63] = {0};
+
+    // promenna uchovavajici aktualni index pole "pTempBinary".
     int i = 0;
+
+    // promenna uchovavajici index pole "binary".
+    int j = 0;
 
     bool negative = false;
 
@@ -78,20 +99,18 @@ char * convertDecToBin(long decimal) {
 
     // samotny prevod cisla z desitkovy do binarni soustavy.
     while (decimal != 0) {
-        pTempBinary[i++] = decimal % 2;
+        tempBinary[i++] = decimal % 2;
         decimal /= 2;
     }
 
     i--;
 
     // pokud je cislo zaporne, nastavi prvni cislo na -1.
-    if (negative == 1) {
-        pTempBinary[i] = -1;
-    }
+    if (negative == 1)
+        tempBinary[i] = -1;
 
-    int j = 0;
     while (i != -1) {
-        binary[j++] = pTempBinary[i--];
+        binary[j++] = tempBinary[i--];
     }
 
     return binary;
