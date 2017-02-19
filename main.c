@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <limits.h>
+#include <errno.h>
 
 typedef int bool;
 #define true 1
@@ -10,7 +11,7 @@ typedef int bool;
 
 // maximalni delka pole pro long.
 // jedna se o logaritmus pri zaklade 2 cisla v decimalni soustave.
-#define BIN_LENGTH 63
+#define BIN_NUM_LENGTH 63
 
 /**
  * Zkontroluje argumenty.
@@ -32,75 +33,79 @@ bool checkArgumentCount(int argc)
  * Zkontroluje parametr jestli se jedna o celociselne cislo (integer).
  * rovnez jestli neni cislo prilis velke.
  */
-bool checkParam(char *c_num[])
+bool checkParam(char * pcDecimal[])
 {
-    char * endp;
-    long num = strtol(c_num[1], &endp, 10);
+    errno = 0;
+    char * endptr;
+    long num = strtol(pcDecimal[1], &endptr, 10);
 
-    if (num > LONG_MAX || num < LONG_MIN) {
-        printf("Zadejte prosim cislo od %ld do %ld.\n", LONG_MAX, LONG_MIN);
+    if ((errno == ERANGE && (num == LONG_MAX || num == LONG_MIN)) || (errno != 0 && num == 0)) {
+        printf("Zadejte prosim cislo od %ld do %ld.\n", LONG_MIN, LONG_MAX);
         return false;
     }
 
-    if (!*endp != '\0') {
+    if (!*endptr != '\0') {
         return true;
     }
 
-    printf("Zadany argument neni cislo.\n");
+    printf("Zadany argument neni cele cislo.\n");
     return false;
 }
 
 /**
  * Prevede cislo z decimalky do binarky.
  */
-char * convertDecToBin(long decIntToConvert) {
-    // deklaruji si staticky alokovane integerove pole o 63 prvku.
+char * convertDecToBin(long decimal) {
+    // deklaruji si staticky alokovane integerove pole o 63 prvcich.
     // 63 prvku, protoze round(log2(9223372036854775807)) je 63.
-    static char resultBin[BIN_LENGTH] = {0};
+    static char binary[BIN_NUM_LENGTH] = {0};
+    memset(binary, 2, BIN_NUM_LENGTH * sizeof(binary[0]));
 
-    // promenna uchovavajici aktualni index pole "resultBin".
-    int k = 0;
+    char pTempBinary[63] = {0};
+
+    // promenna uchovavajici aktualni index pole "binary".
+    int i = 0;
 
     bool negative = false;
 
     // detekuje, ze je cislo zaporne.
     // pokud je zaporne, prevede ho na kladne.
     // nakonec da na zacatek -1.
-    if (decIntToConvert < 0) {
+    if (decimal < 0) {
         negative = true;
-        decIntToConvert = -decIntToConvert;
+        decimal = -decimal;
     }
 
     // samotny prevod cisla z desitkovy do binarni soustavy.
-    while (decIntToConvert != 0) {
-        resultBin[k++] = decIntToConvert % 2;
-        decIntToConvert /= 2;
+    while (decimal != 0) {
+        pTempBinary[i++] = decimal % 2;
+        decimal /= 2;
     }
 
-    k--;
+    i--;
 
     // pokud je cislo zaporne, nastavi prvni cislo na -1.
     if (negative == 1) {
-        resultBin[k] = -1;
+        pTempBinary[i] = -1;
     }
 
-    return resultBin;
+    int j = 0;
+    while (i != -1) {
+        binary[j++] = pTempBinary[i--];
+    }
+
+    return binary;
 }
 
 /**
  * Vypise vyslednou frazi.
  */
-void printBinNumber(long decNum, char * binNum) {
-    printf("Cislo v dekadicke soustave %ld je ", decNum);
+void printBinNumber(long decimal, char * binary) {
+    printf("Cislo v dekadicke soustave %ld je ", decimal);
 
-    int f = BIN_LENGTH;
-
-    while (binNum[f] == 0 && f > 0) {
-        f--;
-    }
-
-    for(; f >= 0; f--)
-        printf("%d", binNum[f]);
+    int k = 0;
+    while (binary[k] != 2 && k < BIN_NUM_LENGTH)
+        printf("%d", binary[k++]);
     printf(" v binarni soustave.\n");
 }
 
@@ -114,11 +119,11 @@ int main(int argc, char *argv[])
 
         if (checkParamInt == 1) {
             // preved char zadany do argumentu na integer.
-            long decIntToConvert = atol(argv[1]);
+            long iDecimal = atol(argv[1]);
 
-            char * result = convertDecToBin(decIntToConvert);
+            char * pResult = convertDecToBin(iDecimal);
 
-            printBinNumber(decIntToConvert, result);
+            printBinNumber(iDecimal, pResult);
         }
     }
 
