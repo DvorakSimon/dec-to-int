@@ -51,17 +51,6 @@ bool checkParam(char *c_num[])
 }
 
 /**
- * Vypocita, jak bude dlouhe cislo v binarce.
- */
-int getBinLength(long decNum) {
-    decNum = abs(decNum);
-    if (decNum == 0) return 0;
-    // novy pocet mist, ktereho bude nabyvat nove cislo v binarce.
-    long result = log2l(decNum);
-    return result;
-}
-
-/**
  * Prevede cislo z decimalky do binarky.
  */
 char * convertDecToBin(long decIntToConvert) {
