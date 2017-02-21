@@ -9,9 +9,20 @@ typedef int bool;
 #define true 1
 #define false 0
 
-// maximalni delka pole pro long.
-// jedna se o logaritmus pri zaklade 2 cisla v decimalni soustave.
+/*
+ Maximalni delka pole pro long.
+ 63 protoze long muze byt nejvice 64 bitu, ale ve skutecnosti je
+ to jen 63. (velikost je dana podle toho kolikabitovy je system)
+*/
 #define BIN_NUM_LENGTH 63
+#define SEPARATOR 2
+#define BASE 2
+
+struct BinaryObject {
+    long decNumber;
+    char * binNumber;
+    int length;
+};
 
 /**
  * Zkontroluje argumenty.
@@ -21,6 +32,8 @@ bool checkArgumentCount(int argc)
 {
     if (argc - 1 == 0 || argc - 1 > 1) {
         printf("Zadejte prosim prave jeden argument.\n");
+        printf("Tvar: dec-to-bin.exe dec_num\n");
+        printf("Napriklad: dec-to-bin.exe 15786\n");
         return false;
     } else if (argc - 1 == 1) {
         return true;
@@ -55,38 +68,42 @@ bool checkParam(char * pcDecimal[])
 /**
  * Prevede cislo z decimalky do binarky.
  */
-char * convertDecToBin(long decimal) {
+struct BinaryObject convertDecToBin(long decimal) {
     /*
-     deklaruji si staticky alokovane integerove pole o 63 prvcich.
-     63 protoze long muze byt nejvice 64 bitu, ale ve skutecnosti je
-     to jen 63. (velikost je dana podle toho kolikabitovy je system)
+     deklaruji si strukturu obsahujici binarni cislo
+     a delku tohoto cisla resp. kde cislo konci.
     */
-    static char binary[BIN_NUM_LENGTH] = {0};
-    /*
-     nastavi vsechny prvky vyslednyho pole na 2, aby se zjistilo,
-     kde doopravdy cislo konci. V binarni soustave neni cislo 2,
-     takze nedojde k chybam.
-    */
-    memset(binary, 2, BIN_NUM_LENGTH * sizeof(binary[0]));
+    struct BinaryObject binaryNumber;
+    binaryNumber.decNumber = decimal;
 
     /*
-     pro pripad, ze uzivatel zada 0 nebo -0, nastavim prvni prvek na 0
+     deklaruji si staticky alokovane integerove pole o BIN_NUM_LENGTH prvcich.
+    */
+    static char binary[BIN_NUM_LENGTH] = {0};
+
+    /*
+     pro pripad, ze uzivatel zada 0 nebo -0, nastavim prvni prvek na SEPARATOR tj. 2.
+     separator musi byt cislo, ktere neni obsazeno v soustave (coz neni).
      pokud to nula nebude, tak si ji sam prepise na jednicku.
     */
-    binary[0] = 0;
+    binary[1] = SEPARATOR;
 
     /*
      docasne pole, ktere se pak bude prepisovat do pole "binary"
      ve spravnem poradi.
     */
-    char tempBinary[63] = {0};
+    char tempBinary[BIN_NUM_LENGTH] = {0};
 
-    // promenna uchovavajici aktualni index pole "pTempBinary".
+    // promenna uchovavajici aktualni index pole "tempBinary".
     int i = 0;
 
-    // promenna uchovavajici index pole "binary".
+    // promenna uchovavajici aktualni index pole "binary".
     int j = 0;
 
+    /*
+     promenna, ktera rika jestli je cislo kladne nebo zaporne.
+     true -> je zaporne a false -> je kladne
+    */
     bool negative = false;
 
     // detekuje, ze je cislo zaporne.
@@ -97,52 +114,72 @@ char * convertDecToBin(long decimal) {
         decimal = -decimal;
     }
 
-    // samotny prevod cisla z desitkovy do binarni soustavy.
+    // samotny prevod cisla z desitkove do binarni soustavy.
     while (decimal != 0) {
-        tempBinary[i++] = decimal % 2;
-        decimal /= 2;
+        tempBinary[i++] = decimal % BASE;
+        decimal /= BASE;
     }
 
-    i--;
+    if (i > 0)
+        i--;
+
+    binaryNumber.length = i;
 
     // pokud je cislo zaporne, nastavi prvni cislo na -1.
-    if (negative == 1)
+    if (negative)
         tempBinary[i] = -1;
 
+    // prepise hodnoty z docasneho pole do vysledeneho ve spravnem poradi.
     while (i != -1) {
         binary[j++] = tempBinary[i--];
     }
 
-    return binary;
+    // zarazka oznacuje, kde cislo konci.
+    if (j != 0)
+        binary[j++] = SEPARATOR;
+
+    binaryNumber.binNumber = binary;
+
+    return binaryNumber;
 }
 
 /**
  * Vypise vyslednou frazi.
  */
-void printBinNumber(long decimal, char * binary) {
-    printf("Cislo v dekadicke soustave %ld je ", decimal);
+void printBinNumber(struct BinaryObject binaryNumber) {
+    //Cislo v dekadicke soustave 10 je 1010 v binarni soustave.
+    printf("Cislo v dekadicke soustave %ld je ", binaryNumber.decNumber);
 
-    int k = 0;
-    while (binary[k] != 2 && k < BIN_NUM_LENGTH)
-        printf("%d", binary[k++]);
+    int i = 0;
+    for (; i <= binaryNumber.length; i++) {
+        printf("%d", binaryNumber.binNumber[i]);
+    }
+
     printf(" v binarni soustave.\n");
 }
 
 int main(int argc, char *argv[])
 {
-    bool checkArgCount = checkArgumentCount(argc);
+    int i = -128;
+    for (; i < 128; i++) {
+        struct BinaryObject binaryNumber = convertDecToBin(i);
+        printBinNumber(binaryNumber);
+    }
 
-    if (checkArgCount == 1) {
+    bool checkArgCount = checkArgumentCount(argc);
+    checkArgCount = false;
+
+    if (checkArgCount) {
 
         bool checkParamInt = checkParam(argv);
 
-        if (checkParamInt == 1) {
+        if (checkParamInt) {
             // preved char zadany do argumentu na integer.
             long iDecimal = atol(argv[1]);
 
-            char * pResult = convertDecToBin(iDecimal);
+            struct BinaryObject binaryNumber = convertDecToBin(iDecimal);
 
-            printBinNumber(iDecimal, pResult);
+            printBinNumber(binaryNumber);
         }
     }
 
