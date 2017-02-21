@@ -15,7 +15,6 @@ typedef int bool;
  to jen 63. (velikost je dana podle toho kolikabitovy je system)
 */
 #define BIN_NUM_LENGTH 63
-#define SEPARATOR 2
 #define BASE 2
 
 struct BinaryObject {
@@ -82,13 +81,6 @@ struct BinaryObject convertDecToBin(long decimal) {
     static char binary[BIN_NUM_LENGTH] = {0};
 
     /*
-     pro pripad, ze uzivatel zada 0 nebo -0, nastavim prvni prvek na SEPARATOR tj. 2.
-     separator musi byt cislo, ktere neni obsazeno v soustave (coz neni).
-     pokud to nula nebude, tak si ji sam prepise na jednicku.
-    */
-    binary[1] = SEPARATOR;
-
-    /*
      docasne pole, ktere se pak bude prepisovat do pole "binary"
      ve spravnem poradi.
     */
@@ -134,10 +126,6 @@ struct BinaryObject convertDecToBin(long decimal) {
         binary[j++] = tempBinary[i--];
     }
 
-    // zarazka oznacuje, kde cislo konci.
-    if (j != 0)
-        binary[j++] = SEPARATOR;
-
     binaryNumber.binNumber = binary;
 
     return binaryNumber;
@@ -160,14 +148,7 @@ void printBinNumber(struct BinaryObject binaryNumber) {
 
 int main(int argc, char *argv[])
 {
-    int i = -128;
-    for (; i < 128; i++) {
-        struct BinaryObject binaryNumber = convertDecToBin(i);
-        printBinNumber(binaryNumber);
-    }
-
     bool checkArgCount = checkArgumentCount(argc);
-    checkArgCount = false;
 
     if (checkArgCount) {
 
