@@ -19,7 +19,7 @@ typedef int bool;
 
 struct BinaryObject {
     long decNumber;
-    char * binNumber;
+    int * binNumber;
     int length;
 };
 
@@ -78,13 +78,13 @@ struct BinaryObject convertDecToBin(long decimal) {
     /*
      deklaruji si staticky alokovane integerove pole o BIN_NUM_LENGTH prvcich.
     */
-    static char binary[BIN_NUM_LENGTH] = {0};
+    static int binary[BIN_NUM_LENGTH] = {0};
 
     /*
      docasne pole, ktere se pak bude prepisovat do pole "binary"
      ve spravnem poradi.
     */
-    char tempBinary[BIN_NUM_LENGTH] = {0};
+    int tempBinary[BIN_NUM_LENGTH] = {0};
 
     // promenna uchovavajici aktualni index pole "tempBinary".
     int i = 0;
@@ -122,9 +122,8 @@ struct BinaryObject convertDecToBin(long decimal) {
         tempBinary[i] = -1;
 
     // prepise hodnoty z docasneho pole do vysledeneho ve spravnem poradi.
-    while (i != -1) {
+    while (i != -1)
         binary[j++] = tempBinary[i--];
-    }
 
     binaryNumber.binNumber = binary;
 
@@ -135,13 +134,11 @@ struct BinaryObject convertDecToBin(long decimal) {
  * Vypise vyslednou frazi.
  */
 void printBinNumber(struct BinaryObject binaryNumber) {
-    //Cislo v dekadicke soustave 10 je 1010 v binarni soustave.
     printf("Cislo v dekadicke soustave %ld je ", binaryNumber.decNumber);
 
     int i = 0;
-    for (; i <= binaryNumber.length; i++) {
+    for (; i <= binaryNumber.length; i++)
         printf("%d", binaryNumber.binNumber[i]);
-    }
 
     printf(" v binarni soustave.\n");
 }
@@ -155,7 +152,7 @@ int main(int argc, char *argv[])
         bool checkParamInt = checkParam(argv);
 
         if (checkParamInt) {
-            // preved char zadany do argumentu na integer.
+            // preved char zadany do argumentu na long.
             long iDecimal = atol(argv[1]);
 
             struct BinaryObject binaryNumber = convertDecToBin(iDecimal);
